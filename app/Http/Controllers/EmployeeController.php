@@ -5,8 +5,9 @@ namespace App\Http\Controllers;
 use Validator;
 use App\Models\Employee;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
-class HomeController extends Controller
+class EmployeeController extends Controller
 {
     /**
      * Create a new controller instance.
@@ -26,9 +27,9 @@ class HomeController extends Controller
     public function index()
     {
         $data = [
-            'employees' => \App\Models\Employee::orderBy('name', 'desc')->latest()->get(),
+            'employees' => \App\Models\Employee::orderBy('created_at', 'desc')->get(),
         ];
-        return view('home', $data);
+        return view('employee', $data);
     }
 
     /**
@@ -76,7 +77,8 @@ class HomeController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $data = Employee::find($id);
+        return response()->json(['status' => true, 'message' => '', 'data' => $data, 'url' => route('employee.update', $id)]);
     }
 
     /**
@@ -84,7 +86,23 @@ class HomeController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $input = $request->all();
+
+        $validation = Validator::make($input, [
+            'name' => 'required|string|max:255',
+            'nip' => 'required|numeric|unique:employees,nip,' . $id . ',id',
+            'position' => 'required|string|max:255',
+            // 'start_date' => 'required|date',
+            // 'photo' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
+
+        if ($validation->fails()) {
+            return response()->json(['errors' => $validation->errors()->all()]);
+        }
+
+        Employee::find($id)->update($input);
+
+        return response()->json(['status' => true, 'message' => 'Employee updated successfully.']);
     }
 
     /**
@@ -92,6 +110,7 @@ class HomeController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        Employee::find($id)->delete();
+        return response()->json(['status' => true, 'message' => 'Employee deleted successfully.']);
     }
 }

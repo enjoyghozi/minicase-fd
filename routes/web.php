@@ -8,4 +8,4 @@ Route::get('/', function () {
 
 Auth::routes();
 
-Route::resource('home', \App\Http\Controllers\HomeController::class);
+Route::resource('employee', \App\Http\Controllers\EmployeeController::class);
