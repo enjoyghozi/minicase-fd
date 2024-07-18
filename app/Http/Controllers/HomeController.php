@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use Validator;
+use App\Models\Employee;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -23,7 +25,10 @@ class HomeController extends Controller
      */
     public function index()
     {
-        return view('home');
+        $data = [
+            'employees' => \App\Models\Employee::orderBy('name', 'desc')->latest()->get(),
+        ];
+        return view('home', $data);
     }
 
     /**
@@ -39,7 +44,23 @@ class HomeController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $input = $request->all();
+
+        $validation = Validator::make($input, [
+            'name' => 'required|string|max:255',
+            'nip' => 'required|numeric|unique:employees',
+            'position' => 'required|string|max:255',
+            // 'start_date' => 'required|date',
+            // 'photo' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
+
+        if ($validation->fails()) {
+            return response()->json(['errors' => $validation->errors()->all()]);
+        }
+
+        Employee::create($input);
+
+        return response()->json(['status' => true, 'message' => 'Employee created successfully.']);
     }
 
     /**
