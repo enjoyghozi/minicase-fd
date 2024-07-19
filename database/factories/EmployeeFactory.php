@@ -17,9 +17,9 @@ class EmployeeFactory extends Factory
     public function definition(): array
     {
         return [
+            'position_id' => \App\Models\JobTitle::inRandomOrder()->first()->id,
             'name' => fake()->name(),
             'nip' => fake()->ean8(),
-            'position' => fake()->jobTitle(),
             'photo' => null,
             'start_date' => fake()->dateTime(),
         ];

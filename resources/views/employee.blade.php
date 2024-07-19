@@ -19,7 +19,7 @@
                 $('#errors').hide();
                 if (!$.isEmptyObject(response.responseJSON.errors)) {
                     $('#errors').show();
-                    $('#errors-edit').find('ul').html('');
+                    $('#errors').find('ul').html('');
                     $.each(response.responseJSON.errors, function(index, value) {
                         $('#errors').find('ul').append('<li>' + value + '</li>');
                     });
@@ -43,7 +43,7 @@
                 .done(function(response) {
                     $('#editForm').find('#name').val(response.data.name);
                     $('#editForm').find('#nip').val(response.data.nip);
-                    $('#editForm').find('#posisi').val(response.data.position);
+                    $('#editForm').find('#posisi').val(response.data.position_id);
 
                     $('#editForm').attr('action', response.url);
 
@@ -57,8 +57,9 @@
                 });
         });
 
-        var optionFeed = {
+        var optionFeedEdit = {
             complete: function(response) {
+                $('#editForm')[0].reset();
                 $('#errors-edit').hide();
                 if (!$.isEmptyObject(response.responseJSON.errors)) {
                     $('#errors-edit').show();
@@ -72,7 +73,7 @@
                     var htmlAppe =
                         '<td>' + response.responseJSON.data.name + '</td>' +
                         '<td>' + response.responseJSON.data.nip + '</td>' +
-                        '<td>' + response.responseJSON.data.position + '</td>' +
+                        '<td>' + response.responseJSON.data.position_id + '</td>' +
                         '<td>' + response.responseJSON.data.start_date + '</td>' +
                         '<td>' +
                         '<a href="javascript:void(0)" class="btn btn-secondary btn-sm edit-employee" data-bs-toggle="modal" data-bs-target="#employeeEdit" data-id="' +
@@ -85,7 +86,7 @@
             }
         };
         $('body').on('click', '.update-employee', function(event) {
-            $(this).parents('form').ajaxForm(optionFeed);
+            $(this).parents('form').ajaxForm(optionFeedEdit);
         });
     </script>
 
@@ -93,31 +94,45 @@
         $('body').on('click', '.delete-employee', function(event) {
             var deleteId = $(this).data('id');
             swal({
-                title: "Are you sure?",
-                text: "Your will not be able to recover this imaginary file!",
-                type: "warning",
-                showCancelButton: true,
-                confirmButtonClass: "btn-danger",
-                confirmButtonText: "Yes, delete it!",
-                closeOnConfirm: false
-            },
-            function() {
-                $.ajax({
-                    url: '/employee/' + deleteId,
-                    type: 'Get',
-                })
-                .done(function(response) {
-                    $('#employee-' + deleteId).remove();
-                    swal("Deleted!", response.message, "success");
-                })
-                .fail(function() {
-                    console.log('error');
-                })
-                .always(function() {
-                    console.log('complete');
+                    title: "Are you sure?",
+                    text: "Your will not be able to recover this imaginary file!",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonClass: "btn-danger",
+                    confirmButtonText: "Yes, delete it!",
+                    closeOnConfirm: false
+                },
+                function() {
+                    $.ajax({
+                            url: '/employee/' + deleteId,
+                            type: 'Get',
+                        })
+                        .done(function(response) {
+                            $('#employee-' + deleteId).remove();
+                            swal("Deleted!", response.message, "success");
+                        })
+                        .fail(function() {
+                            console.log('error');
+                        })
+                        .always(function() {
+                            console.log('complete');
+                        });
                 });
-            });
         })
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            $('.positionAdd').select2({
+                dropdownParent: $('#employeeAdd')
+            });
+        });
+
+        $(document).ready(function() {
+            $('.positionEdit').select2({
+                dropdownParent: $('#employeeEdit')
+            });
+        });
     </script>
 @endpush
 
@@ -146,15 +161,14 @@
                                 <tr id="employee-{{ $item->id }}">
                                     <td>{{ $item->name }}</td>
                                     <td>{{ $item->nip }}</td>
-                                    <td>{{ $item->position }}</td>
+                                    <td>{{ $item->jobTitle->position }}</td>
                                     <td>{{ $item->start_date }}</td>
                                     <td>
                                         <a href="javascript:void(0)" class="btn btn-secondary btn-sm edit-employee"
                                             data-bs-toggle="modal" data-bs-target="#employeeEdit"
                                             data-id="{{ $item->id }}">Edit</a>
                                         <a href="javascript:void(0)" class="btn btn-danger btn-sm delete-employee"
-                                            data-bs-toggle="modal"
-                                            data-id="{{ $item->id }}">Hapus</a>
+                                            data-bs-toggle="modal" data-id="{{ $item->id }}">Hapus</a>
                                     </td>
                                 </tr>
                             @empty
@@ -196,8 +210,11 @@
                         </div>
                         <div class="mb-3">
                             <label for="posisi" class="form-label">Posisi</label>
-                            <input type="text" class="form-control" id="posisi" name="position"
-                                placeholder="Posisi pegawai">
+                            <select class="form-control positionAdd" id="posisi" name="position" style="width: 100%">
+                                @foreach ($positions as $item)
+                                    <option value="{{ $item->id }}">{{ $item->position }}</option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -237,8 +254,11 @@
                         </div>
                         <div class="mb-3">
                             <label for="posisi" class="form-label">Posisi</label>
-                            <input type="text" class="form-control" id="posisi" name="position"
-                                placeholder="Posisi pegawai">
+                            <select class="form-control positionEdit" id="posisi" name="position" style="width: 100%">
+                                @foreach ($positions as $item)
+                                    <option value="{{ $item->id }}">{{ $item->position }}</option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
                     <div class="modal-footer">

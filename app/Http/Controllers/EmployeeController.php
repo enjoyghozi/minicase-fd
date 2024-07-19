@@ -27,7 +27,8 @@ class EmployeeController extends Controller
     public function index()
     {
         $data = [
-            'employees' => \App\Models\Employee::orderBy('created_at', 'desc')->get(),
+            'employees' => \App\Models\Employee::with('jobTitle')->orderBy('created_at', 'desc')->get(),
+            'positions' => \App\Models\JobTitle::all(),
         ];
         return view('employee', $data);
     }
@@ -50,7 +51,7 @@ class EmployeeController extends Controller
         $validation = Validator::make($input, [
             'name' => 'required|string|max:255',
             'nip' => 'required|numeric|unique:employees',
-            'position' => 'required|string|max:255',
+            'position' => 'required|string',
             // 'start_date' => 'required|date',
             // 'photo' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
@@ -59,7 +60,13 @@ class EmployeeController extends Controller
             return response()->json(['errors' => $validation->errors()->all()]);
         }
 
-        Employee::create($input);
+        $data = [
+            'name' => $input['name'],
+            'nip' => $input['nip'],
+            'position_id' => $input['position'],
+        ];
+
+        Employee::create($data);
 
         return response()->json(['status' => true, 'message' => 'Employee created successfully.']);
     }
@@ -100,7 +107,13 @@ class EmployeeController extends Controller
             return response()->json(['errors' => $validation->errors()->all()]);
         }
 
-        Employee::find($id)->update($input);
+        $data = [
+            'name' => $input['name'],
+            'nip' => $input['nip'],
+            'position_id' => $input['position'],
+        ];
+
+        Employee::find($id)->update($data);
 
         return response()->json(['status' => true, 'message' => 'Employee updated successfully.']);
     }
