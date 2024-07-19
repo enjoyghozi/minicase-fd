@@ -52,18 +52,27 @@ class EmployeeController extends Controller
             'name' => 'required|string|max:255',
             'nip' => 'required|numeric|unique:employees',
             'position' => 'required|string',
-            // 'start_date' => 'required|date',
-            // 'photo' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'start_date' => 'required|date',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
         if ($validation->fails()) {
             return response()->json(['errors' => $validation->errors()->all()]);
         }
 
+        if ($request->hasFile('photo')) {
+            $image = $request->file('photo');
+            $filename = time() . '.' . $image->getClientOriginalExtension();
+            $image->move('public/images', $filename);
+            $input['photo'] = $filename;
+        }
+
         $data = [
             'name' => $input['name'],
             'nip' => $input['nip'],
             'position_id' => $input['position'],
+            'start_date' => $input['start_date'],
+            'photo' => $input['photo'],
         ];
 
         Employee::create($data);
@@ -99,18 +108,27 @@ class EmployeeController extends Controller
             'name' => 'required|string|max:255',
             'nip' => 'required|numeric|unique:employees,nip,' . $id . ',id',
             'position' => 'required|string|max:255',
-            // 'start_date' => 'required|date',
-            // 'photo' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'start_date' => 'required|date',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
         if ($validation->fails()) {
             return response()->json(['errors' => $validation->errors()->all()]);
         }
 
+        if ($request->hasFile('photo')) {
+            $image = $request->file('photo');
+            $filename = time() . '.' . $image->getClientOriginalExtension();
+            $image->move('public/images', $filename);
+            $input['photo'] = $filename;
+        }
+
         $data = [
             'name' => $input['name'],
             'nip' => $input['nip'],
             'position_id' => $input['position'],
+            'start_date' => $input['start_date'],
+            'photo' => $input['photo'],
         ];
 
         Employee::find($id)->update($data);

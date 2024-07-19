@@ -17,6 +17,7 @@
         var optionFeed = {
             complete: function(response) {
                 $('#errors').hide();
+                $('#createForm')[0].reset();
                 if (!$.isEmptyObject(response.responseJSON.errors)) {
                     $('#errors').show();
                     $('#errors').find('ul').html('');
@@ -44,6 +45,8 @@
                     $('#editForm').find('#name').val(response.data.name);
                     $('#editForm').find('#nip').val(response.data.nip);
                     $('#editForm').find('#posisi').val(response.data.position_id);
+                    $('#editForm').find('#start_date').val(response.data.start_date);
+                    $('#editForm').find('#photo').val(response.data.photo);
 
                     $('#editForm').attr('action', response.url);
 
@@ -124,20 +127,35 @@
     <script>
         $(document).ready(function() {
             $('.positionAdd').select2({
+                placeholder: "Select a state",
+                allowClear: true,
                 dropdownParent: $('#employeeAdd')
             });
         });
 
         $(document).ready(function() {
             $('.positionEdit').select2({
+                placeholder: "Select a state",
                 dropdownParent: $('#employeeEdit')
             });
         });
     </script>
+    {{-- <script>
+        $(function() {
+            $('#start_date').daterangepicker({
+                singleDatePicker: true,
+                timePicker: true,
+                showDropdowns: true,
+                dropdownParent: $('#employeeAdd'),
+                dateFormat: 'Y-m-d',
+                timeFormat: 'H:i:s',
+            });
+        });
+    </script> --}}
 @endpush
 
 @section('content')
-    <div class="container">
+    <div class="container overflow-auto">
         <div class="row justify-content-center">
             <div class="col-md-8">
                 <div class="card">
@@ -162,7 +180,7 @@
                                     <td>{{ $item->name }}</td>
                                     <td>{{ $item->nip }}</td>
                                     <td>{{ $item->jobTitle->position }}</td>
-                                    <td>{{ $item->start_date }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($item->start_date)->format('d/m/Y') }}</td>
                                     <td>
                                         <a href="javascript:void(0)" class="btn btn-secondary btn-sm edit-employee"
                                             data-bs-toggle="modal" data-bs-target="#employeeEdit"
@@ -181,50 +199,60 @@
                 </div>
             </div>
         </div>
-    </div>
+        <!-- Modal Add -->
+        <div class="container modal fade overflow-auto" id="employeeAdd" data-bs-backdrop="static" role="dialog"
+            data-bs-keyboard="false" tabindex="-1" aria-labelledby="employeeAddLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="employeeAddLabel">Tambah Pegawai</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form action="{{ route('employee.store') }}" method="post" id="createForm" enctype="multipart/form-data">
+                        <div class="modal-body">
+                            <div id='errors' class="alert alert-danger" style="display: none">
+                                <ul></ul>
+                            </div>
+                            @csrf
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Nama Pegawai</label>
+                                <input type="text" class="form-control" id="name" name="name"
+                                    placeholder="Nama pegawai">
+                            </div>
+                            <div class="mb-3">
+                                <label for="nip" class="form-label">NIP</label>
+                                <input type="number" class="form-control" id="nip" name="nip"
+                                    placeholder="Nomor Induk Pegawai">
+                            </div>
 
-    <!-- Modal Add -->
-    <div class="modal fade" id="employeeAdd" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-        aria-labelledby="employeeAddLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="employeeAddLabel">Tambah Pegawai</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <div class="mb-3">
+                                <label for="posisi" class="form-label">Posisi</label>
+                                <select class="form-control positionAdd" id="posisi" name="position" style="width: 100%">
+                                    @foreach ($positions as $item)
+                                        <option value="{{ $item->id }}">{{ $item->position }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="start_date" class="form-label">Mulai Bekerja</label>
+                                <input type="date" class="form-control" id="start_date" name="start_date">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="photo" class="form-label">Foto</label>
+                                <input type="file" class="form-control" id="photo" name="photo">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary save-employee">Tambah</button>
+                        </div>
+                    </form>
                 </div>
-                <form action="{{ route('employee.store') }}" method="post" id="createForm">
-                    <div class="modal-body">
-                        <div id='errors' class="alert alert-danger" style="display: none">
-                            <ul></ul>
-                        </div>
-                        @csrf
-                        <div class="mb-3">
-                            <label for="name" class="form-label">Nama Pegawai</label>
-                            <input type="text" class="form-control" id="name" name="name"
-                                placeholder="Nama pegawai">
-                        </div>
-                        <div class="mb-3">
-                            <label for="nip" class="form-label">NIP</label>
-                            <input type="number" class="form-control" id="nip" name="nip"
-                                placeholder="Nomor Induk Pegawai">
-                        </div>
-                        <div class="mb-3">
-                            <label for="posisi" class="form-label">Posisi</label>
-                            <select class="form-control positionAdd" id="posisi" name="position" style="width: 100%">
-                                @foreach ($positions as $item)
-                                    <option value="{{ $item->id }}">{{ $item->position }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary save-employee">Tambah</button>
-                    </div>
-                </form>
             </div>
         </div>
     </div>
+
 
     <!-- Modal Edit -->
     <div class="modal fade" id="employeeEdit" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
@@ -254,11 +282,21 @@
                         </div>
                         <div class="mb-3">
                             <label for="posisi" class="form-label">Posisi</label>
-                            <select class="form-control positionEdit" id="posisi" name="position" style="width: 100%">
+                            <select class="form-control positionEdit" id="posisi" name="position"
+                                style="width: 100%">
                                 @foreach ($positions as $item)
                                     <option value="{{ $item->id }}">{{ $item->position }}</option>
                                 @endforeach
                             </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="start_date" class="form-label">Mulai Bekerja</label>
+                            <input type="date" class="form-control" id="start_date" name="start_date">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="photo" class="form-label">Foto</label>
+                            <input type="file" class="form-control" id="photo" name="photo">
                         </div>
                     </div>
                     <div class="modal-footer">
